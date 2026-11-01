@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Pokémon sbírka</title>
+<title>Ráj Pokémonů</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
@@ -19,7 +19,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);fo
 .wrap{max-width:1180px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-right)) 60px max(16px,env(safe-area-inset-left))}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,44px);line-height:1.05;margin:0;letter-spacing:-.01em}
 .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.summary{margin-top:18px;display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.summary{margin-top:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:560px;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .summary>div{background:var(--surface);padding:14px 18px;min-width:0}
 .big{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);line-height:1.05}
 .czk-big{font-family:var(--display);font-weight:700;font-size:clamp(17px,2.6vw,22px);color:var(--muted)}
@@ -51,7 +51,6 @@ select{font:inherit;color:inherit;border:1px solid var(--line);background:var(--
 .none{border:1.5px dashed var(--line);border-radius:14px;padding:28px 18px;text-align:center;color:var(--muted)}
 .foot{margin-top:28px;font-size:12.5px;color:var(--muted);line-height:1.6}
 .foot a{color:var(--accent)}
-@media (max-width:640px){.summary{grid-template-columns:1fr 1fr}.summary>div:first-child{grid-column:1/-1}}
 @media (max-width:420px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tile{padding:10px}.name{font-size:16px}.price{font-size:19px}}
 </style>
 </head>
@@ -69,7 +68,7 @@ const fmtDate=s=>{const d=new Date(s);return isNaN(d)?"—":d.toLocaleDateString
 const pl=(n,a,b,c)=>n+" "+(n==1?a:n>=2&&n<=4?b:c);
 const VL={r:"Reverse holo",h:"Holo",f:"1. edice"};
 let q=new URLSearchParams(location.search).get("q")||"", sort="value", setF="";
-const total=D.items.reduce((a,it)=>a+(it.p??0)*it.q,0), count=D.items.reduce((a,it)=>a+it.q,0);
+const count=D.items.reduce((a,it)=>a+it.q,0);
 const sets=[...new Map(D.items.map(it=>[it.sid,[it.set,it.d]])).entries()].sort((a,b)=>(b[1][1]||"").localeCompare(a[1][1]||""));
 function list(){
   const w=norm(q).split(/\s+/).filter(Boolean);
@@ -89,15 +88,14 @@ function render(){
   let ans="";
   if(q.trim()||setF) ans=l.length?`Ano, <b>${l.length===1?"tuhle kartu mám":`mám ${pl(l.length,"odpovídající kartu","odpovídající karty","odpovídajících karet")}`}</b>.`:`<b>Tuhle kartu ve sbírce nemám.</b> Zkuste jiný název nebo číslo.`;
   root.innerHTML=`<div class="eyebrow">Pokémon TCG · sbírka</div><h1>${esc(D.title)}</h1>
-  <section class="summary"><div><div class="lbl">Hodnota sbírky</div><div class="big">${eur(total)}</div>${D.fx?`<div class="czk-big">≈ ${czk(total)}</div>`:""}</div>
-  <div><div class="lbl">Karet</div><div class="mid">${count}</div><div class="sub">${pl(D.items.length,"druh","druhy","druhů")}</div></div>
+  <section class="summary"><div><div class="lbl">Karet</div><div class="mid">${count}</div><div class="sub">${pl(D.items.length,"druh","druhy","druhů")}</div></div>
   <div><div class="lbl">Ceny</div><div class="mid" style="font-size:17px">${fmtDate(D.pricesAt)}</div><div class="sub">Cardmarket${D.fx?`, kurz ČNB ${D.fx.rate.toLocaleString("cs-CZ",{minimumFractionDigits:3})}`:""}</div></div></section>
   <div class="find"><div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Hledáte kartu? Napište jméno, edici nebo číslo…" value="${esc(q)}" aria-label="Hledat kartu" autocomplete="off"></div>
   <select id="setf" aria-label="Edice"><option value="">Všechny edice</option>${sets.map(([k,v])=>`<option value="${esc(k)}"${k===setF?" selected":""}>${esc(v[0])}</option>`).join("")}</select>
   <select id="sort" aria-label="Řazení">${[["value","Podle hodnoty"],["name","Podle jména"],["set","Podle edice"]].map(([k,t])=>`<option value="${k}"${k===sort?" selected":""}>${t}</option>`).join("")}</select></div>
   <div class="answer">${ans||`${pl(D.items.length,"karta","karty","karet")} ve sbírce`}</div>
   ${l.length?`<div class="grid">${l.map(tile).join("")}</div>`:(D.items.length?`<div class="none">Nic nenalezeno.</div>`:`<div class="none">Sbírka je zatím prázdná.</div>`)}
-  <p class="foot">Ceny podle <a href="https://www.cardmarket.com/en/Pokemon" rel="noopener">Cardmarket</a> Price Guide (medián trendu, 7denního a 30denního průměru), přepočet podle kurzu ČNB zaokrouhlený nahoru na 5 Kč. Orientační hodnoty, nezohledňují stav karet. Aktualizováno ${fmtDate(D.updated)}.</p>`;
+  <p class="foot">Ceny podle <a href="https://www.cardmarket.com/en/Pokemon" rel="noopener">Cardmarket</a>: ${D.rule?esc(D.rule)+" (při méně než 5 nabídkách nejnižší z nich)":"Price Guide (medián trendu, 7denního a 30denního průměru)"}, přepočet podle kurzu ČNB zaokrouhlený nahoru na 5 Kč. Orientační hodnoty, nezohledňují stav karet. Aktualizováno ${fmtDate(D.updated)}.</p>`;
   if(fid){const e=document.getElementById(fid);if(e){e.focus();try{e.setSelectionRange(pos,pos)}catch(x){}}}
 }
 document.addEventListener("input",e=>{if(e.target.id==="q"){q=e.target.value;render()}});
